@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Player Story Prototype</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#888; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh; font-family:'Courier New',Courier,monospace; font-weight:bold; }
+.game { width:960px; height:540px; background:#f0f0f0; border:4px solid black; position:relative; overflow:hidden; }
+.screen { width:100%; height:100%; display:none; flex-direction:column; }
+.screen.active { display:flex; }
+.btn { font-family:'Courier New',Courier,monospace; font-weight:bold; text-transform:uppercase; letter-spacing:1px; cursor:pointer; font-size:14px; }
+.btn-a { border:3px solid black; background:#f0f0f0; }
+.btn-a:hover { background:#e0e0e0; }
+.btn-a:active { background:black; color:#f0f0f0; }
+.btn-i { border:3px dashed black; background:#f0f0f0; color:#aaa; cursor:default; pointer-events:none; }
+.tab { flex:1; display:flex; align-items:center; justify-content:center; font-size:14px; letter-spacing:1px; cursor:pointer; }
+.tab.active { background:black; color:#f0f0f0; cursor:default; }
+.tab:not(.active):hover { background:#e0e0e0; }
+.sub-tab { flex:1; display:flex; align-items:center; justify-content:center; font-size:13px; letter-spacing:1px; cursor:pointer; height:100%; }
+.sub-tab.active { background:black; color:#f0f0f0; cursor:default; }
+.sub-tab:not(.active):hover { background:#e0e0e0; }
+.vtab { flex:1; display:flex; align-items:center; justify-content:center; writing-mode:vertical-rl; transform:rotate(180deg); font-size:13px; letter-spacing:2px; cursor:pointer; }
+.vtab.active { background:black; color:#f0f0f0; cursor:default; }
+.vtab:not(.active):hover { background:#e0e0e0; }
+.wheel-slot { border:3px solid black; display:flex; align-items:center; justify-content:center; text-align:center; font-family:'Courier New',Courier,monospace; font-weight:bold; }
+.grid-box { border:3px solid black; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:1px; }
+.breadcrumb { height:32px; border-bottom:3px solid black; display:flex; align-items:center; padding:0 14px; gap:8px; font-size:11px; letter-spacing:1px; background:#e8e8e8; flex-shrink:0; }
+.breadcrumb span { cursor:pointer; text-decoration:underline; }
+.breadcrumb span:last-child { cursor:default; text-decoration:none; font-weight:bold; }
+.desc-scrollable { overflow-y: auto; overflow-x: hidden; }
+.desc-scrollable::-webkit-scrollbar { width:8px; }
+.desc-scrollable::-webkit-scrollbar-track { background:#f0f0f0; }
+.desc-scrollable::-webkit-scrollbar-thumb { background:#999; border:1px solid black; }
+</style>
+</head>
+<body>
+<div class="game" id="game">
+
+<!-- ═══════════════════════════════════════════════════════ SCREEN 01 ══ -->
+<div class="screen active" id="s01">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:48px;">
+    <div style="font-size:44px;letter-spacing:6px;border-bottom:4px solid black;padding-bottom:12px;">PLAYER STORY</div>
+    <div style="display:flex;gap:28px;">
+      <button class="btn btn-a" style="font-size:20px;padding:16px 44px;" onclick="go('s02')">PLAY</button>
+      <button class="btn btn-a" style="font-size:20px;padding:16px 44px;" onclick="go('s03')">COLLECTIONS</button>
+      <button class="btn btn-i" style="font-size:20px;padding:16px 44px;">OPTIONS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SCREEN 02 ══ -->
+<div class="screen" id="s02">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+    <!-- Back button strip -->
+    <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+      <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+        <div style="font-size:16px;">&#9664;</div>
+        <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+      </div>
+    </div>
+    <!-- Inner box -->
+    <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+      <!-- Header -->
+      <div style="height:48px;border-bottom:4px solid black;display:flex;align-items:center;padding:0 20px;flex-shrink:0;">
+        <span style="font-size:18px;letter-spacing:3px;">START RUN</span>
+      </div>
+      <!-- Map + Character -->
+      <div style="display:flex;height:200px;border-bottom:4px solid black;flex-shrink:0;">
+        <div style="flex:1;border-right:4px solid black;padding:14px;display:flex;flex-direction:column;">
+          <div style="font-size:13px;letter-spacing:2px;margin-bottom:10px;border-bottom:2px solid black;padding-bottom:6px;">MAP</div>
+          <div style="flex:1;display:flex;align-items:center;gap:10px;">
+            <div onclick="mapPrev()" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;"><svg width="18" height="28" viewBox="0 0 18 28"><polygon points="18,0 18,28 0,14" fill="currentColor"/></svg></div>
+            <div style="flex:1;border:3px solid black;display:flex;flex-direction:column;align-items:center;justify-content:center;height:110px;background:#ddd;">
+              <div style="font-size:11px;color:#555;margin-bottom:4px;">MAP IMAGE</div>
+              <div id="s2-map-name" style="font-size:16px;">FOREST</div>
+            </div>
+            <div onclick="mapNext()" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;"><svg width="18" height="28" viewBox="0 0 18 28"><polygon points="0,0 0,28 18,14" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+        <div style="flex:1;padding:14px;display:flex;flex-direction:column;">
+          <div style="font-size:13px;letter-spacing:2px;margin-bottom:10px;border-bottom:2px solid black;padding-bottom:6px;">CHARACTER</div>
+          <div style="flex:1;display:flex;align-items:center;gap:10px;">
+            <div onclick="charPrev()" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;"><svg width="18" height="28" viewBox="0 0 18 28"><polygon points="18,0 18,28 0,14" fill="currentColor"/></svg></div>
+            <div style="flex:1;border:3px solid black;display:flex;flex-direction:column;align-items:center;justify-content:center;height:110px;background:#ddd;">
+              <div style="font-size:11px;color:#555;margin-bottom:4px;">CHAR IMAGE</div>
+              <div id="s2-char-name" style="font-size:16px;">JEANNE</div>
+            </div>
+            <div onclick="charNext()" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;"><svg width="18" height="28" viewBox="0 0 18 28"><polygon points="0,0 0,28 18,14" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+      </div>
+      <!-- Modificators -->
+      <div style="flex:1;padding:14px;overflow:hidden;">
+        <div style="font-size:13px;letter-spacing:2px;margin-bottom:10px;border-bottom:2px solid black;padding-bottom:6px;">MODIFICATORS</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px 20px;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" checked style="accent-color:black;"> GOLD RUSH</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" style="accent-color:black;"> IRON TIDE</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" style="accent-color:black;"> SWARM</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" checked style="accent-color:black;"> SLOW WORLD</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" style="accent-color:black;"> SPRINT</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" style="accent-color:black;"> HEAD START</label>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div style="height:60px;border-top:4px solid black;display:flex;align-items:center;justify-content:flex-end;padding:0 24px;flex-shrink:0;">
+        <button class="btn btn-i" style="font-size:13px;padding:8px 20px;">START RUN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SCREEN 03/04 (BROWSE) ══ -->
+<div class="screen" id="s03">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab active" onclick="go('s03')">MAPS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s04')">CHARACTERS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s05')">TOWERS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s08')">MODIFICATORS</div>
+  </div>
+  <div style="flex:1;padding:20px 28px 12px;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="s3-name" style="font-size:26px;letter-spacing:2px;border-bottom:3px solid black;padding-bottom:8px;margin-bottom:14px;flex-shrink:0;">FOREST</div>
+    <div style="display:flex;gap:20px;flex:1;min-height:0;">
+      <div style="flex:0 0 345px;border:3px solid black;background:#ccc;display:flex;align-items:center;justify-content:center;">
+        <div id="s3-img-label" style="font-size:14px;">FOREST</div>
+      </div>
+      <div id="s3-desc" class="desc-scrollable" style="flex:1;font-size:12px;line-height:1.8;border-left:2px solid black;padding-left:16px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding-top:22px;padding-bottom:4px;flex-shrink:0;">
+      <div onclick="s3Nav(-1)" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="28" viewBox="0 0 18 28"><polygon points="18,0 18,28 0,14" fill="currentColor"/></svg>
+      </div>
+      <div id="s3w0" class="wheel-slot" style="cursor:pointer;width:44px;height:44px;font-size:10px;" onclick="s3Slot(-2)"></div>
+      <div id="s3w1" class="wheel-slot" style="cursor:pointer;width:56px;height:56px;font-size:11px;" onclick="s3Slot(-1)"></div>
+      <div id="s3w2" class="wheel-slot" style="width:74px;height:74px;font-size:13px;background:black;color:#f0f0f0;"></div>
+      <div id="s3w3" class="wheel-slot" style="cursor:pointer;width:56px;height:56px;font-size:11px;" onclick="s3Slot(1)"></div>
+      <div id="s3w4" class="wheel-slot" style="cursor:pointer;width:44px;height:44px;font-size:10px;" onclick="s3Slot(2)"></div>
+      <div onclick="s3Nav(1)" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="28" viewBox="0 0 18 28"><polygon points="0,0 0,28 18,14" fill="currentColor"/></svg>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="screen" id="s04">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab" onclick="go('s03')">MAPS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab active" onclick="go('s04')">CHARACTERS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s05')">TOWERS</div>
+    <div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s08')">MODIFICATORS</div>
+  </div>
+  <div style="flex:1;padding:20px 28px 12px;display:flex;flex-direction:column;overflow:hidden;">
+    <div id="s4-name" style="font-size:26px;letter-spacing:2px;border-bottom:3px solid black;padding-bottom:8px;margin-bottom:14px;flex-shrink:0;">JEANNE D'ARC</div>
+    <div style="display:flex;gap:20px;flex:1;min-height:0;">
+      <div style="flex:0 0 345px;border:3px solid black;background:#ccc;overflow:hidden;position:relative;">
+        <img id="s4-img-real" src="" style="width:100%;height:110%;object-fit:cover;object-position:center 0px;display:none;">
+        <div id="s4-img-label" style="display:none;color:black;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;text-align:center;">JEANNE D'ARC</div>
+
+      </div>
+      <div id="s4-desc" class="desc-scrollable" style="flex:1;font-size:12px;line-height:1.8;border-left:2px solid black;padding-left:16px;"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;padding-top:22px;padding-bottom:4px;flex-shrink:0;">
+      <div onclick="s4Nav(-1)" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="28" viewBox="0 0 18 28"><polygon points="18,0 18,28 0,14" fill="currentColor"/></svg>
+      </div>
+      <div id="s4w0" class="wheel-slot" style="cursor:pointer;width:44px;height:44px;font-size:10px;" onclick="s4Slot(-2)"></div>
+      <div id="s4w1" class="wheel-slot" style="cursor:pointer;width:56px;height:56px;font-size:11px;" onclick="s4Slot(-1)"></div>
+      <div id="s4w2" class="wheel-slot" style="width:74px;height:74px;font-size:13px;background:black;color:#f0f0f0;"></div>
+      <div id="s4w3" class="wheel-slot" style="cursor:pointer;width:56px;height:56px;font-size:11px;" onclick="s4Slot(1)"></div>
+      <div id="s4w4" class="wheel-slot" style="cursor:pointer;width:44px;height:44px;font-size:10px;" onclick="s4Slot(2)"></div>
+      <div onclick="s4Nav(1)" style="cursor:pointer;width:28px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="28" viewBox="0 0 18 28"><polygon points="0,0 0,28 18,14" fill="currentColor"/></svg>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SCREEN 05/06/07 (TOWERS) ══ -->
+<div class="screen" id="s05">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab" onclick="go('s03')">MAPS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s04')">CHARACTERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab active">TOWERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s08')">MODIFICATORS</div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <div style="display:flex;flex-direction:column;width:161px;border-right:4px solid black;flex-shrink:0;">
+      <div class="sub-tab active" style="flex:1;letter-spacing:2px;font-size:13px;"><svg width="90" height="82" viewBox="0 0 90 82" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,80 2,80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s06')"><svg width="84" height="84" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="80" height="80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s07')"><svg width="90" height="86" viewBox="0 0 90 86" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,33 72,82 18,82 2,33" fill="currentColor"/></svg></div>
+    </div>
+    <div id="s05-grid" style="flex:1;display:grid;grid-template-columns:repeat(6,104px);grid-template-rows:repeat(4,104px);gap:6px;align-content:center;justify-content:center;overflow:hidden;"></div>
+  </div>
+  <div id="tt05" class="tooltip-box" style="position:absolute;display:none;width:180px;border:3px solid black;background:#f0f0f0;padding:12px;font-size:12px;line-height:1.6;z-index:100;">
+    <div id="tt05n" style="font-size:13px;border-bottom:2px solid black;padding-bottom:6px;margin-bottom:8px;letter-spacing:1px;"></div>
+    <div id="tt05b"></div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="screen" id="s06">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab" onclick="go('s03')">MAPS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s04')">CHARACTERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab active">TOWERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s08')">MODIFICATORS</div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <div style="display:flex;flex-direction:column;width:161px;border-right:4px solid black;flex-shrink:0;">
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s05')"><svg width="90" height="82" viewBox="0 0 90 82" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,80 2,80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab active" style="flex:1;letter-spacing:2px;font-size:13px;"><svg width="84" height="84" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="80" height="80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s07')"><svg width="90" height="86" viewBox="0 0 90 86" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,33 72,82 18,82 2,33" fill="currentColor"/></svg></div>
+    </div>
+    <div id="s06-grid" style="flex:1;display:grid;grid-template-columns:repeat(6,104px);grid-template-rows:repeat(4,104px);gap:6px;align-content:center;justify-content:center;overflow:hidden;"></div>
+  </div>
+  <div id="tt06" style="position:absolute;display:none;width:180px;border:3px solid black;background:#f0f0f0;padding:12px;font-size:12px;line-height:1.6;z-index:100;">
+    <div id="tt06n" style="font-size:13px;border-bottom:2px solid black;padding-bottom:6px;margin-bottom:8px;letter-spacing:1px;"></div>
+    <div id="tt06b"></div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<div class="screen" id="s07">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab" onclick="go('s03')">MAPS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s04')">CHARACTERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab active">TOWERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s08')">MODIFICATORS</div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <div style="display:flex;flex-direction:column;width:161px;border-right:4px solid black;flex-shrink:0;">
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s05')"><svg width="90" height="82" viewBox="0 0 90 82" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,80 2,80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab" style="flex:1;letter-spacing:2px;font-size:13px;" onclick="go('s06')"><svg width="84" height="84" viewBox="0 0 84 84" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="80" height="80" fill="currentColor"/></svg></div>
+      <div style="border-top:4px solid black;"></div>
+      <div class="sub-tab active" style="flex:1;letter-spacing:2px;font-size:13px;"><svg width="90" height="86" viewBox="0 0 90 86" xmlns="http://www.w3.org/2000/svg"><polygon points="45,2 88,33 72,82 18,82 2,33" fill="currentColor"/></svg></div>
+    </div>
+    <div id="s07-grid" style="flex:1;display:grid;grid-template-columns:repeat(6,104px);grid-template-rows:repeat(4,104px);gap:6px;align-content:center;justify-content:center;overflow:hidden;"></div>
+  </div>
+  <div id="tt07" style="position:absolute;display:none;width:180px;border:3px solid black;background:#f0f0f0;padding:12px;font-size:12px;line-height:1.6;z-index:100;">
+    <div id="tt07n" style="font-size:13px;border-bottom:2px solid black;padding-bottom:6px;margin-bottom:8px;letter-spacing:1px;"></div>
+    <div id="tt07b"></div>
+  </div>
+  </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SCREEN 08 ══ -->
+<div class="screen" id="s08">
+  <div style="width:100%;height:100%;display:flex;background:#d8d8d8;">
+  <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;">
+    <div style="width:100%;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;border-bottom:2px solid #bbb;" onclick="go('s01')" onmouseenter="this.style.background='#ccc'" onmouseleave="this.style.background='transparent'">
+      <div style="font-size:16px;">&#9664;</div>
+      <div style="font-size:9px;letter-spacing:2px;">MENU</div>
+    </div>
+  </div>
+  <div style="flex:1;margin:16px 16px 16px 0;border:4px solid black;display:flex;flex-direction:column;overflow:hidden;background:#f0f0f0;">
+<div style="display:flex;height:48px;border-bottom:4px solid black;flex-shrink:0;">
+    <div class="tab" onclick="go('s03')">MAPS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s04')">CHARACTERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab" onclick="go('s05')">TOWERS</div><div style="border-left:4px solid black;"></div>
+    <div class="tab active">MODIFICATORS</div>
+  </div>
+  <div id="s08-grid" style="flex:1;display:grid;grid-template-columns:repeat(6,104px);grid-template-rows:repeat(3,112px);gap:6px;align-content:center;justify-content:center;overflow:hidden;"></div>
+  <div id="tt08" style="position:absolute;display:none;width:180px;border:3px solid black;background:#f0f0f0;padding:12px;font-size:12px;line-height:1.6;z-index:100;">
+    <div id="tt08n" style="font-size:13px;border-bottom:2px solid black;padding-bottom:6px;margin-bottom:8px;letter-spacing:1px;"></div>
+    <div id="tt08b"></div>
+  </div>
+  </div>
+  </div>
+</div>
+
+</div><!-- /game -->
+
+<script>
+/* ── ROUTER ── */
+function go(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  hideAllTooltips();
+}
+function hideAllTooltips() {
+  ['tt05','tt06','tt07','tt08'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+}
+
+/* ── SCREEN 02: MAP / CHAR SELECTORS ── */
+const maps  = ['FOREST', 'DESERT'];
+const chars = ['JEANNE', 'MAGE'];
+let mi=0, ci=0;
+function mapPrev(){ mi=(mi-1+maps.length)%maps.length; document.getElementById('s2-map-name').textContent=maps[mi]; }
+function mapNext(){ mi=(mi+1)%maps.length; document.getElementById('s2-map-name').textContent=maps[mi]; }
+function charPrev(){ ci=(ci-1+chars.length)%chars.length; document.getElementById('s2-char-name').textContent=chars[ci]; }
+function charNext(){ ci=(ci+1)%chars.length; document.getElementById('s2-char-name').textContent=chars[ci]; }
+
+/* ── WHEEL FACTORY ── */
+function makeWheel(prefix, items, nameId, imgId, descId, label) {
+  var cur = 0;
+  var SIZES = [52,65,90,65,52];
+  function get(off) { return items[((cur+off)%items.length+items.length)%items.length]; }
+  var CHAR_IMAGES = {"JEANNE D'ARC": "jeanne-darc.jpg"};
+  function render() {
+    var item = items[cur];
+    document.getElementById(nameId).textContent = item.unlocked ? item.name : '???';
+    var imgLabel = document.getElementById(imgId);
+    var imgReal  = document.getElementById('s4-img-real');
+    if (imgReal) {
+      // Always hide the image first
+      imgReal.style.display = 'none';
+      imgReal.src = '';
+      // Only show for Jeanne d'Arc
+      if (item.name === "JEANNE D'ARC" && item.unlocked) {
+        imgReal.src = 'jeanne-darc.jpg';
+        imgReal.style.display = 'block';
+        imgLabel.style.display = 'none';
+      } else {
+        imgLabel.style.display = 'flex';
+        imgLabel.textContent = item.unlocked ? item.name : '???';
+      }
+    } else {
+      imgLabel.textContent = item.unlocked ? item.name : '???';
+    }
+    document.getElementById(descId).innerHTML = item.unlocked ? item.desc : 'LOCKED — Complete previous stages to unlock.';
+    for(var i=0;i<5;i++) {
+      var off=i-2;
+      var it=get(off);
+      var el=document.getElementById(prefix+'w'+i);
+      el.textContent = it.unlocked ? it.name.substring(0,6) : '?';
+      el.style.background=(i===2)?'black':'#f0f0f0';
+      el.style.color=(i===2)?'#f0f0f0':'black';
+    }
+  }
+  window[prefix+'Nav'] = function(dir){ cur=((cur+dir)%items.length+items.length)%items.length; render(); };
+  window[prefix+'Slot'] = function(off){ cur=((cur+off)%items.length+items.length)%items.length; render(); };
+  render();
+}
+
+var MAPS_DATA = [
+  {name:'FOREST', desc:'A dense forest environment with winding paths, tall trees, and hidden shortcuts. Perfect for ambush tactics.', unlocked:true},
+  {name:'DESERT', desc:'Vast sandy dunes with open sightlines and sparse cover. Favors long-range tower placements.', unlocked:true},
+  {name:'CAVE',   desc:'???', unlocked:false},
+  {name:'OCEAN',  desc:'???', unlocked:false},
+  {name:'VOLCANO',desc:'???', unlocked:false},
+];
+var CHARS_DATA = [
+  {name:"JEANNE D'ARC",desc:"Guided by her faith and alleged visions of Archangel Michael, Saint Margaret and Saint Katherine, Jeanne was one of the most influential figures of the 100 years war. Her courage and her devotion to her people ultimately changed the psychological and political momentum of the war in France's favor, which lead to its final victory, territorial reunification and ultimately the birth of a common French identity. Through her moral and symbolic leadership, Jeanne achieved in her one year of activity for the King of France significantly more success than any of her male contemporaries in tens of years. They were born noble with years of military preparation, she came from a laboureurs family. Ultimately she was condemned to be burned at the stake by a French Catholic Bishop partisan of English interests for the grave and unforgivable crime of wearing men's clothes or something…<br><br>• Divine connection: Special tower which increases the attack speed of surrounding towers by +20%<br>• Aversion to fire: Fire mobs do +10% more damage to the player<br>• Fashionable Defiance: The player can choose to lock in the characteristics of their towers until the end of the run. If so, the tower gains +50% boost to all stats but the player starts loosing 5% health a minute per tower.",unlocked:true},
+  {name:'MAGE',    desc:'Arcane specialist with area damage spells. Low health but devastating when paired with slow mods.', unlocked:true},
+  {name:'ROGUE',   desc:'???', unlocked:false},
+  {name:'PALADIN', desc:'???', unlocked:false},
+  {name:'RANGER',  desc:'???', unlocked:false},
+];
+makeWheel('s3', MAPS_DATA,  's3-name', 's3-img-label', 's3-desc', 'MAP');
+makeWheel('s4', CHARS_DATA, 's4-name', 's4-img-label', 's4-desc', 'CHARACTER');
+
+/* ── GRID FACTORY (towers / mods) ── */
+var TOWER_TIPS = {
+  'BUCKSHOT':  'Fires a wide spread of pellets in a cone. High damage up close.',
+  'RAFALE':    'Rapid burst of shots in quick succession. Low cooldown.',
+  'MULTI-DIR': 'Shoots in 3 directions simultaneously. Lower per-shot damage.',
+  'SNIPE':     'Single high-velocity projectile. Very long range, slow reload.',
+  'ROTATE':    'Barrel rotates 360° continuously. Hits anything in range.',
+  'PENDULUM':  'Swings left and right in an arc. Covers a wide front angle.',
+  'TALL':      'Extended height gives +30% range. Slower rotation speed.',
+  'FIXED':     'Locked forward. Maximum damage output, zero tracking.',
+  'BULLETS':   'Standard kinetic rounds. Reliable, no special effect.',
+  'FIRE':      'Incendiary rounds. Applies burn damage over time.',
+  'WATER':     'High-pressure jets. Slows enemies on hit.',
+  'ELECTRIC':  'Shock rounds. Chains to nearby enemies for area damage.',
+};
+
+function buildGrid(containerId, items, ttId, ttNameId, ttBodyId) {
+  var container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(function(item) {
+    var el = document.createElement('div');
+    el.className = 'grid-box';
+    el.style.height = '104px'; el.style.width = '104px';
+    el.style.fontSize = '11px';
+    el.style.letterSpacing = '1px';
+    el.style.textAlign = 'center';
+    el.style.padding = '4px';
+    if(item.unlocked) {
+      el.style.borderColor = 'black'; el.style.background='#ddd'; el.style.color='black';
+      el.textContent = item.name;
+      var pt=null;
+      function startP(e){ e.preventDefault(); var t=el,tt=document.getElementById(ttId); pt=setTimeout(function(){
+        var gr=document.querySelector('.game').getBoundingClientRect();
+        var er=t.getBoundingClientRect();
+        var cx=(er.left+er.right)/2-gr.left;
+        tt.style.display='block';
+        document.getElementById(ttNameId).textContent=item.name;
+        document.getElementById(ttBodyId).textContent=item.desc||TOWER_TIPS[item.name]||'No info.';
+        if(cx<480){ tt.style.left=(er.right-gr.left+10)+'px'; tt.style.right='auto'; }
+        else { tt.style.right=(gr.right-er.left+10)+'px'; tt.style.left='auto'; }
+        var tp=er.top-gr.top; if(tp+130>540) tp=540-140;
+        tt.style.top=tp+'px';
+      },600); }
+      function endP(){ clearTimeout(pt); document.getElementById(ttId).style.display='none'; }
+      el.addEventListener('mousedown',startP);
+      el.addEventListener('touchstart',startP,{passive:false});
+      el.addEventListener('mouseup',endP);
+      el.addEventListener('mouseleave',endP);
+      el.addEventListener('touchend',endP);
+    } else {
+      el.style.border='3px dashed #aaa'; el.style.background='#e8e8e8'; el.style.color='#aaa';
+      el.textContent = '?';
+    }
+    container.appendChild(el);
+  });
+}
+
+var TOWERS = {
+  s05: [{name:'BUCKSHOT',unlocked:true,desc:'Fires a wide spread of pellets in a cone. High damage up close.'},{name:'RAFALE',unlocked:true,desc:'Rapid burst of shots in quick succession. Low cooldown.'},{name:'MULTI-DIR',unlocked:true,desc:'Shoots in 3 directions simultaneously. Lower per-shot damage.'},{name:'SNIPE',unlocked:true,desc:'Single high-velocity projectile. Very long range, slow reload.'},{name:'VOLLEY',unlocked:false,desc:''},{name:'SPIRAL',unlocked:false,desc:''},{name:'ARC SHOT',unlocked:false,desc:''},{name:'RICOCHET',unlocked:false,desc:''},{name:'SUPPRES.',unlocked:false,desc:''},{name:'BARRAGE',unlocked:false,desc:''},{name:'SPLIT',unlocked:false,desc:''},{name:'SEEKING',unlocked:false,desc:''},{name:'MORTAR',unlocked:false,desc:''},{name:'SCATTER',unlocked:false,desc:''},{name:'FAN FIRE',unlocked:false,desc:''},{name:'CHAIN',unlocked:false,desc:''},{name:'BURST',unlocked:false,desc:''},{name:'OVERWATCH',unlocked:false,desc:''},{name:'CROSSFIRE',unlocked:false,desc:''},{name:'PULSE',unlocked:false,desc:''},{name:'SWEEPER',unlocked:false,desc:''},{name:'LANCER',unlocked:false,desc:''},{name:'PINCER',unlocked:false,desc:''},{name:'STORM',unlocked:false,desc:''}],
+  s06: [{name:'ROTATE',unlocked:true,desc:'Barrel rotates 360° continuously. Hits anything in range.'},{name:'PENDULUM',unlocked:true,desc:'Swings left and right in an arc. Covers a wide front angle.'},{name:'TALL',unlocked:true,desc:'Extended height gives +30% range. Slower rotation speed.'},{name:'FIXED',unlocked:true,desc:'Locked forward. Maximum damage output, zero tracking.'},{name:'SHORT',unlocked:false,desc:''},{name:'TRACKING',unlocked:false,desc:''},{name:'PIVOT',unlocked:false,desc:''},{name:'GYRO',unlocked:false,desc:''},{name:'TURRET',unlocked:false,desc:''},{name:'PERISCOPE',unlocked:false,desc:''},{name:'ELEVATE',unlocked:false,desc:''},{name:'TILT',unlocked:false,desc:''},{name:'SWEEP',unlocked:false,desc:''},{name:'CAMO SCAN',unlocked:false,desc:''},{name:'DUAL AX.',unlocked:false,desc:''},{name:'STAGGER',unlocked:false,desc:''},{name:'ORBITAL',unlocked:false,desc:''},{name:'MIRROR',unlocked:false,desc:''},{name:'ZIGZAG',unlocked:false,desc:''},{name:'RATCHET',unlocked:false,desc:''},{name:'WOBBLE',unlocked:false,desc:''},{name:'RELAY',unlocked:false,desc:''},{name:'COUNTER',unlocked:false,desc:''},{name:'SENTINEL',unlocked:false,desc:''}],
+  s07: [{name:'BULLETS',unlocked:true,desc:'Standard kinetic rounds. Reliable, no special effect.'},{name:'FIRE',unlocked:true,desc:'Incendiary rounds. Applies burn damage over time.'},{name:'WATER',unlocked:true,desc:'High-pressure jets. Slows enemies on hit.'},{name:'ELECTRIC',unlocked:true,desc:'Shock rounds. Chains to nearby enemies for area damage.'},{name:'ROCKS',unlocked:false,desc:''},{name:'ICE',unlocked:false,desc:''},{name:'ACID',unlocked:false,desc:''},{name:'POISON GAS',unlocked:false,desc:''},{name:'PLASMA',unlocked:false,desc:''},{name:'SONIC',unlocked:false,desc:''},{name:'VOID',unlocked:false,desc:''},{name:'SEEDS',unlocked:false,desc:''},{name:'SAND',unlocked:false,desc:''},{name:'MAGNET',unlocked:false,desc:''},{name:'LASER',unlocked:false,desc:''},{name:'SPORE',unlocked:false,desc:''},{name:'GRAVITY',unlocked:false,desc:''},{name:'STEAM',unlocked:false,desc:''},{name:'SHADOW',unlocked:false,desc:''},{name:'LIGHT',unlocked:false,desc:''},{name:'NANO',unlocked:false,desc:''},{name:'CRYSTAL',unlocked:false,desc:''},{name:'LAVA',unlocked:false,desc:''},{name:'WIND',unlocked:false,desc:''}],
+};
+
+var MODS = [{name:'GOLD RUSH',unlocked:true,desc:'+50% gold earned per kill.'},{name:'IRON TIDE',unlocked:true,desc:'Enemies have +40% HP.'},{name:'SWARM',unlocked:true,desc:'2x enemy spawn rate.'},{name:'SLOW WORLD',unlocked:true,desc:'Enemies move 20% slower.'},{name:'SPRINT',unlocked:true,desc:'Enemies move 30% faster.'},{name:'HEAD START',unlocked:true,desc:'Start with 1 free random tower.'},{name:'ARMOURED',unlocked:false,desc:''},{name:'FOG OF WAR',unlocked:false,desc:''},{name:'NO REFUND',unlocked:false,desc:''},{name:'BLITZ',unlocked:false,desc:''},{name:'ELITE ONLY',unlocked:false,desc:''},{name:'BOUNTY',unlocked:false,desc:''},{name:'GLASS CAN.',unlocked:false,desc:''},{name:'CHAIN RXN',unlocked:false,desc:''},{name:'OVERCLOCK',unlocked:false,desc:''},{name:'PACIFIST',unlocked:false,desc:''},{name:'SWARM+',unlocked:false,desc:''},{name:'SIEGE',unlocked:false,desc:''}];
+
+buildGrid('s05-grid', TOWERS.s05, 'tt05','tt05n','tt05b');
+buildGrid('s06-grid', TOWERS.s06, 'tt06','tt06n','tt06b');
+buildGrid('s07-grid', TOWERS.s07, 'tt07','tt07n','tt07b');
+buildGrid('s08-grid', MODS,       'tt08','tt08n','tt08b');
+</script>
+</body></html>
