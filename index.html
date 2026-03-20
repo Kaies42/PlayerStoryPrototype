@@ -331,6 +331,9 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   hideAllTooltips();
+  // Re-render wheel if this screen has one
+  if (id === 's03' && wheelRenders['s3']) wheelRenders['s3']();
+  if (id === 's04' && wheelRenders['s4']) wheelRenders['s4']();
 }
 function hideAllTooltips() {
   ['tt05','tt06','tt07','tt08'].forEach(function(id){
@@ -349,6 +352,7 @@ function charPrev(){ ci=(ci-1+chars.length)%chars.length; document.getElementByI
 function charNext(){ ci=(ci+1)%chars.length; document.getElementById('s2-char-name').textContent=chars[ci]; }
 
 /* ── WHEEL FACTORY ── */
+var wheelRenders = {}; // Store render functions for re-rendering when screens are shown
 function makeWheel(prefix, items, nameId, imgId, descId, label) {
   var cur = 0;
   var SIZES = [52,65,90,65,52];
@@ -356,25 +360,41 @@ function makeWheel(prefix, items, nameId, imgId, descId, label) {
   var CHAR_IMAGES = {"JEANNE D'ARC": "jeanne-darc.jpg"};
   function render() {
     var item = items[cur];
+    console.log('===== RENDER CALLED =====');
+    console.log('Current item:', item.name);
     document.getElementById(nameId).textContent = item.unlocked ? item.name : '???';
     var imgLabel = document.getElementById(imgId);
     var imgReal  = document.getElementById('s4-img-real');
+    console.log('Image element exists?', !!imgReal);
+    console.log('Is Jeanne and unlocked?', item.name === "JEANNE D'ARC" && item.unlocked);
     if (imgReal) {
       // Always hide the image first
       imgReal.style.display = 'none';
       imgReal.src = '';
       // Only show for Jeanne d'Arc
       if (item.name === "JEANNE D'ARC" && item.unlocked) {
-        imgReal.src = 'jeanne-darc.jpg';
-        imgReal.style.display = 'block';
+        console.log('Setting up Jeanne image...');
+        imgReal.src = '';  // Clear src first to force reload
+        setTimeout(function() {
+          var imagePath = './' + CHAR_IMAGES[item.name];  // Force relative path with ./
+          console.log('setTimeout callback: setting src to', imagePath);
+          imgReal.src = imagePath;
+          console.log('After setting src, src is now:', imgReal.src);
+          imgReal.style.display = 'block';
+          console.log('Image display set to block');
+        }, 10);
         imgLabel.style.display = 'none';
       } else {
+        console.log('Not Jeanne, showing label instead');
+        imgReal.style.display = 'none';
         imgLabel.style.display = 'flex';
         imgLabel.textContent = item.unlocked ? item.name : '???';
       }
     } else {
+      console.log('ERROR: Image element not found!');
       imgLabel.textContent = item.unlocked ? item.name : '???';
     }
+    console.log('===== RENDER END =====\n');
     document.getElementById(descId).innerHTML = item.unlocked ? item.desc : 'LOCKED — Complete previous stages to unlock.';
     for(var i=0;i<5;i++) {
       var off=i-2;
@@ -387,6 +407,7 @@ function makeWheel(prefix, items, nameId, imgId, descId, label) {
   }
   window[prefix+'Nav'] = function(dir){ cur=((cur+dir)%items.length+items.length)%items.length; render(); };
   window[prefix+'Slot'] = function(off){ cur=((cur+off)%items.length+items.length)%items.length; render(); };
+  wheelRenders[prefix] = render; // Store reference for re-rendering
   render();
 }
 
@@ -398,8 +419,8 @@ var MAPS_DATA = [
   {name:'VOLCANO',desc:'???', unlocked:false},
 ];
 var CHARS_DATA = [
-  {name:"JEANNE D'ARC",desc:"Guided by her faith and alleged visions of Archangel Michael, Saint Margaret and Saint Katherine, Jeanne was one of the most influential figures of the 100 years war. Her courage and her devotion to her people ultimately changed the psychological and political momentum of the war in France's favor, which lead to its final victory, territorial reunification and ultimately the birth of a common French identity. Through her moral and symbolic leadership, Jeanne achieved in her one year of activity for the King of France significantly more success than any of her male contemporaries in tens of years. They were born noble with years of military preparation, she came from a laboureurs family. Ultimately she was condemned to be burned at the stake by a French Catholic Bishop partisan of English interests for the grave and unforgivable crime of wearing men's clothes or something…<br><br>• Divine connection: Special tower which increases the attack speed of surrounding towers by +20%<br>• Aversion to fire: Fire mobs do +10% more damage to the player<br>• Fashionable Defiance: The player can choose to lock in the characteristics of their towers until the end of the run. If so, the tower gains +50% boost to all stats but the player starts loosing 5% health a minute per tower.",unlocked:true},
-  {name:'MAGE',    desc:'Arcane specialist with area damage spells. Low health but devastating when paired with slow mods.', unlocked:true},
+  {name:"JEANNE D'ARC",desc:"Guided by her faith and alleged visions of Archangel Michael, Saint Margaret and Saint Katherine, Jeanne was one of the most influential figures of the 100 years war. Her courage and her devotion to her people ultimately changed the psychological and political momentum of the war in France's favor, which lead to its final victory, territorial reunification and ultimately the birth of a common French identity. Through her moral and symbolic leadership, Jeanne achieved in her one year of activity for the King of France significantly more success than any of her male contemporaries in tens of years. They were born noble with years of military preparation, she came from a laboureurs family. Ultimately she was condemned to be burned at the stake by a French Catholic Bishop partisan of English interests for the grave and unforgivable crime of wearing men's clothes or something…<br><br>• <span style=\"text-decoration:underline;text-decoration-thickness:2px;\">Divine connection:</span> Special tower which increases the attack speed of surrounding towers by +20%<br>• <span style=\"text-decoration:underline;text-decoration-thickness:2px;\">Aversion to fire:</span> Fire mobs do +10% more damage to the player<br>• <span style=\"text-decoration:underline;text-decoration-thickness:2px;\">Fashionable Defiance:</span> The player can choose to lock in the characteristics of their towers until the end of the run. If so, the tower gains +50% boost to all stats but the player starts loosing 5% health a minute per tower.",unlocked:true},
+  {name:'WARLOCK', desc:'???', unlocked:false},
   {name:'ROGUE',   desc:'???', unlocked:false},
   {name:'PALADIN', desc:'???', unlocked:false},
   {name:'RANGER',  desc:'???', unlocked:false},
